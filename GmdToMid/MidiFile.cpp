@@ -1,4 +1,4 @@
-// Main.cpp - The main application entry point for the GUI version.
+// MidiFile.h - Defines the MidiFile class.
 //
 // Copyright (C) 2024 Stephen Bonar
 //
@@ -14,15 +14,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <vector>
-#include "Program.h"
+#include "MidiFile.h"
 
-int main(int argc, char** argv)
+void MidiFile::WriteChunkHeader(ChunkHeader header)
 {
-    std::vector<std::string> args;
-    for (int i = 0; i < argc; i++)
-        args.push_back(argv[i]);
+    if (!stream.IsOpen())
+        stream.Open(BinData::FileMode::Write);
 
-    Program p{ args };
-    return p.Run();
+    stream.Write(&header.id);
+    stream.Write(&header.size);
+}
+
+void MidiFile::WriteChunkData(BinData::RawField* data)
+{
+    stream.Write(data);
 }

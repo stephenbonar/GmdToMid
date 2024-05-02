@@ -1,4 +1,4 @@
-// Main.cpp - The main application entry point for the GUI version.
+// ChunkHeader.h - Declares the ChunkHeader struct.
 //
 // Copyright (C) 2024 Stephen Bonar
 //
@@ -14,15 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <vector>
-#include "Program.h"
+#ifndef CHUNK_HEADER_H
+#define CHUNK_HEADER_H
 
-int main(int argc, char** argv)
+#include "BinData.h"
+
+struct ChunkHeader
 {
-    std::vector<std::string> args;
-    for (int i = 0; i < argc; i++)
-        args.push_back(argv[i]);
+    static constexpr int Size{ 8 };
 
-    Program p{ args };
-    return p.Run();
-}
+    BinData::StringField id{ 4 };
+    BinData::Int32Field size{ BinData::FieldEndianness::Big };
+};
+
+#endif

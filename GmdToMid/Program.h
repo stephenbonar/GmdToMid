@@ -1,4 +1,4 @@
-// Main.cpp - The main application entry point for the GUI version.
+// Program.h - Declares the main program class for the console version.
 //
 // Copyright (C) 2024 Stephen Bonar
 //
@@ -14,15 +14,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef PROGRAM_H
+#define PROGRAM_H
+
+#include <memory>
 #include <vector>
-#include "Program.h"
+#include <string>
+#include <iostream>
+#include "CmdLine.h"
+#include "BinData.h"
+#include "GmdFile.h"
 
-int main(int argc, char** argv)
+class Program
 {
-    std::vector<std::string> args;
-    for (int i = 0; i < argc; i++)
-        args.push_back(argv[i]);
+public:
+    Program(std::vector<std::string> args);
 
-    Program p{ args };
-    return p.Run();
-}
+    int Run();
+private:
+    std::unique_ptr<CmdLine::ProgParam> progParam;
+    std::unique_ptr<CmdLine::PosParam> inputFileParam;
+    std::unique_ptr<CmdLine::PosParam> outputFileParam;
+    std::unique_ptr<CmdLine::Parser> cmdLineParser;
+
+    bool ParseArguments();
+};
+
+#endif

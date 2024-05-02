@@ -14,4 +14,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_executable(gmdtomid ConsoleMain.cpp)
+set(CONSOLE_SOURCES
+    ConsoleMain.cpp
+    Program.cpp
+    GmdFile.cpp
+    MidiFile.cpp)
+
+set(INCLUDES
+    ${PROJECT_SOURCE_DIR}/GmdToMid
+    ${PROJECT_SOURCE_DIR}/LibCppBinData/LibCppBinData
+    ${PROJECT_SOURCE_DIR}/LibCppCmdLine/LibCppCmdLine)
+
+set(LIBRARIES
+    LibCppCmdLine
+    LibCppBinData)
+
+add_executable(gmdtomid ${CONSOLE_SOURCES})
+
+# Include all the directories that contain headers that we need that are not
+# in the current directory, otherwise the compiler won't find them
+target_include_directories(gmdtomid PUBLIC ${INCLUDES})
+
+target_link_libraries(gmdtomid PUBLIC ${LIBRARIES})
