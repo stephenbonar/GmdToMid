@@ -15,7 +15,13 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.5.0)
-project(GmdToMid VERSION 0.1.0 LANGUAGES C CXX)
+project(GmdToMid VERSION 0.81.0 LANGUAGES C CXX)
+
+# Although the project command can natively pass the name and version into
+# the program through the configure_file command, there is no native RELEASE
+# or COPYRIGHT info, so we define that here to pass to configure_file.
+set(PROJECT_RELEASE "Alpha")
+set(PROJECT_COPYRIGHT "Copyright (C) 2024 Stephen Bonar")
 
 # Specify the C++ standard.
 set(CMAKE_CXX_STANDARD 17)

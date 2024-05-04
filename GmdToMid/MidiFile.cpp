@@ -16,6 +16,23 @@
 
 #include "MidiFile.h"
 
+MidiFile::MidiFile(std::string fileName, BinData::UInt16Field division) :
+    stream{ fileName }
+{
+    header.id.SetData(midiHeaderID);
+    header.size.SetValue(midiHeaderDataSize);
+
+    // We're creating a type 0 MIDI file. GMD files are type 2, but we export
+    // each MIDI track from the GMD as a single type 0 track.
+    headerData.format.SetValue(midiType0ID);
+
+    // Type 0 MIDI files only have 1 track.
+    headerData.numTracks.SetValue(midiType0TrackNum);
+
+    // The only header field we bring over from the GMD file is the division.
+    headerData.division.SetValue(division.Value());
+}
+
 void MidiFile::WriteChunkHeader(ChunkHeader header)
 {
     if (!stream.IsOpen())
@@ -25,7 +42,23 @@ void MidiFile::WriteChunkHeader(ChunkHeader header)
     stream.Write(&header.size);
 }
 
-void MidiFile::WriteChunkData(BinData::RawField* data)
+void MidiFile::WriteMidiHeaderData(MidiHeaderData data)
+{
+    stream.Write(&data.format);
+    stream.Write(&data.numTracks);
+    stream.Write(&data.division);
+}
+
+void MidiFile::WriteData(BinData::RawField* data)
 {
     stream.Write(data);
+}
+
+void MidiFile::WriteTrack(ChunkHeader trackHeader, 
+                          BinData::RawField* trackData)
+{
+    WriteChunkHeader(header);
+    WriteMidiHeaderData(headerData);
+    WriteChunkHeader(trackHeader);
+    WriteData(trackData);
 }

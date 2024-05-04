@@ -20,17 +20,55 @@
 #include <string>
 #include "BinData.h"
 #include "ChunkHeader.h"
+#include "MidiHeaderData.h"
 
+/// @brief The chunk ID used to indicate the beginning of a MIDI header.
+inline const char* midiHeaderID{ "MThd" };
+
+/// @brief The chunk ID used to indicate the beginning of a MIDI track.
+inline const char* midiTrackID{ "MTrk" };
+
+/// @brief The integer value representing MIDI type 0.
+inline constexpr int midiType0ID{ 0 };
+
+/// @brief The number of tracks a type 0 MIDI file should contain.
+inline constexpr int midiType0TrackNum{ 1 };
+
+/// @brief Represents a MIDI (.mid) file.
+///
+/// This class supports writing an individual type 0 MIDI track encapsulated
+/// within an entire type 0 MIDI file.
 class MidiFile
 {
 public:
-    MidiFile(std::string fileName) : stream{ fileName } { }
+    /// @brief Constructor; creates a new MidiFile instance of type 0.
+    /// @param fileName The file name of the .mid file. 
+    /// @param division The division value the type 0 MIDI track should use.
+    MidiFile(std::string fileName, BinData::UInt16Field division); 
 
-    void WriteChunkHeader(ChunkHeader header);
-
-    void WriteChunkData(BinData::RawField* data);
+    /// @brief Writes the specified track header and data as a new MIDI file.
+    /// @param trackHeader The header of the track to write.
+    /// @param trackData The track data to write.
+    void WriteTrack(ChunkHeader trackHeader, 
+                    BinData::RawField* trackData);
 private:
     BinData::StdFileStream stream;
+    ChunkHeader header;
+    MidiHeaderData headerData;
+
+    /// @brief Writes the specified chunk header to the file.
+    /// @param header The header to write at the current position.
+    /// @pre The file is open.
+    void WriteChunkHeader(ChunkHeader header);
+
+    /// @brief Writes the specified MidiHeaderData to the file.
+    /// @param data The data to write to the file.
+    /// @pre The file is open.
+    void WriteMidiHeaderData(MidiHeaderData data);
+
+    /// @brief Writes the specified data to the file.
+    /// @param data The data to write to the file.
+    void WriteData(BinData::RawField* data);
 };
 
 #endif

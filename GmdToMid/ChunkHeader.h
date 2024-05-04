@@ -19,12 +19,23 @@
 
 #include "BinData.h"
 
+constexpr int chunkHeaderSize{ 8 };
+
+/// @brief Represents the header of a data chunk in a .gmd or .mid file.
+///
+/// Both standard MIDI files (.mid) and GMD files (.gmd) are comprised of
+/// chunks that have an ID field, a size field, and a data section, similar
+/// to RIFF chunks in a .wav file. The chunk header contains the ID and
+/// size field and is read by programs to determine how to interpret each
+/// chunk. The fields in the struct are layed out in the order they occur in
+/// the file.
 struct ChunkHeader
 {
-    static constexpr int Size{ 8 };
-
+    /// @brief The 4-byte ID field indicating the type of chunk.
     BinData::StringField id{ 4 };
-    BinData::Int32Field size{ BinData::FieldEndianness::Big };
+
+    /// @brief The 32-bit, big endian unsigned integer representing data size.
+    BinData::UInt32Field size{ BinData::FieldEndianness::Big };
 };
 
 #endif

@@ -23,11 +23,17 @@ set(CONSOLE_SOURCES
 set(INCLUDES
     ${PROJECT_SOURCE_DIR}/GmdToMid
     ${PROJECT_SOURCE_DIR}/LibCppBinData/LibCppBinData
-    ${PROJECT_SOURCE_DIR}/LibCppCmdLine/LibCppCmdLine)
+    ${PROJECT_SOURCE_DIR}/LibCppCmdLine/LibCppCmdLine
+    ${PROJECT_BINARY_DIR}/GmdToMid)
 
 set(LIBRARIES
     LibCppCmdLine
     LibCppBinData)
+
+# Configure the program version info from the main cmake project into the
+# Version.h header, which is build into the program binary. This is done so
+# we centrally update the program name, version, and copyright from cmake.
+configure_file(Version.h.in Version.h)
 
 add_executable(gmdtomid ${CONSOLE_SOURCES})
 

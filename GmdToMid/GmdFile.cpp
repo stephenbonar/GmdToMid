@@ -16,33 +16,30 @@
 
 #include "GmdFile.h"
 
-GmdFile::GmdFile(std::string fileName) 
-    : stream{ fileName }, bytesRemaining{ 0 } 
-{ }
-
-bool GmdFile::Convert(std::string fileName)
+bool GmdFile::Convert()
 {
-    MidiFile convertedFile{ fileName };
-
     stream.Open();
     bytesRemaining = stream.Size();
 
     if (!ReadFileHeader())
         return false;
 
+    int trackNum{ 0 };
     std::cout << "Converting file..." << std::endl << std::endl;
     while (bytesRemaining > 0)
     {
         ChunkHeader nextHeader = ReadChunkHeader();
-        if (nextHeader.id.ToString() == "MThd")
+        if (nextHeader.id.ToString() == midiHeaderID)
         {
             PrintChunkHeader("MIDI Header", nextHeader);
-            CopyMidiChunk(convertedFile, nextHeader);
+            ReadMidiHeaderData();
+            PrintMidiHeaderData(midiHeaderData);
         }
-        else if (nextHeader.id.ToString() == "MTrk")
+        else if (nextHeader.id.ToString() == midiTrackID)
         {
             PrintChunkHeader("MIDI Track", nextHeader);
-            CopyMidiChunk(convertedFile, nextHeader);
+            ExportTrack(trackNum, nextHeader);
+            trackNum++;
         }
         else
         {
@@ -56,11 +53,11 @@ bool GmdFile::Convert(std::string fileName)
                 { 
                     static_cast<size_t>(nextHeader.size.Value()) 
                 };
-                ReadChunkData(&skippedData);
+                ReadData(&skippedData);
             }
         }
 
-        std::cout << std::endl << "Bytes remaining: " << bytesRemaining 
+        std::cout << "Bytes remaining: " << bytesRemaining << std::endl 
                   << std::endl;
     }   
 
@@ -72,14 +69,14 @@ ChunkHeader GmdFile::ReadChunkHeader()
     ChunkHeader header;
     stream.Read(&header.id);
     stream.Read(&header.size);
-    bytesRemaining -= ChunkHeader::Size;
+    bytesRemaining -= chunkHeaderSize;
     return header;
 }
 
 bool GmdFile::ReadFileHeader()
 {
     header = ReadChunkHeader();
-    if (header.id.ToString() != "GMD ")
+    if (header.id.ToString() != gmdHeaderID)
     {
         std::cerr << "Input file does not appear to be in the GMD format."
                   << std::endl;
@@ -100,25 +97,51 @@ bool GmdFile::ReadFileHeader()
     }
 }
 
-void GmdFile::ReadChunkData(BinData::RawField* data)
+void GmdFile::ReadData(BinData::RawField* data)
 {
     stream.Read(data);
     bytesRemaining -= data->Size();
 }
 
-void GmdFile::CopyMidiChunk(MidiFile& file, ChunkHeader header)
+void GmdFile::ReadMidiHeaderData()
 {
-    file.WriteChunkHeader(header);
-    BinData::RawField chunkData{ static_cast<size_t>(header.size.Value()) };
-    ReadChunkData(&chunkData);
-    file.WriteChunkData(&chunkData);
+    stream.Read(&midiHeaderData.format);
+    stream.Read(&midiHeaderData.numTracks);
+    stream.Read(&midiHeaderData.division);
+    bytesRemaining -= midiHeaderDataSize;
+}
+
+void GmdFile::ExportTrack(int trackNum, const ChunkHeader& trackHeader)
+{
+    auto trackSize = static_cast<size_t>(trackHeader.size.Value());
+    BinData::RawField trackData{ trackSize };
+    ReadData(&trackData);
+
+    // The exported file takes the same name as the .gmd, but we add a track
+    // number prefix that increases with each successive track so we can tell
+    // each track / .mid file apart.
+    std::filesystem::path gmdPath{ fileName };
+    std::stringstream exportFileName;
+    exportFileName << gmdPath.stem().string() << "-" << trackNum << ".mid";
+
+    unsigned int division = midiHeaderData.division.Value();
+    MidiFile exportFile{ exportFileName.str(), division };
+    exportFile.WriteTrack(trackHeader, &trackData);
 }
 
 void PrintChunkHeader(std::string title, const ChunkHeader& header)
 {
     std::cout << title << std::endl
               << "--------------------" << std::endl
-              << "ID    : " << header.id.ToString() << std::endl
-              << "Size  : " << header.size.Value() << std::endl
+              << "ID       : " << header.id.ToString() << std::endl
+              << "Size     : " << header.size.Value() << std::endl
+              << std::endl;
+}
+
+void PrintMidiHeaderData(const MidiHeaderData& data)
+{
+    std::cout << "Format   : " << data.format.ToString() << std::endl
+              << "Tracks   : " << data.numTracks.Value() << std::endl
+              << "Division : " << data.division.Value() << std::endl
               << std::endl;
 }

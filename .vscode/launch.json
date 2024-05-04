@@ -9,7 +9,7 @@
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/GmdToMid/Debug/gmdtomid.exe",
-            "args": [ "starwars.GMD", "starwars.MID" ],
+            "args": [ "starwars.GMD" ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build/GmdToMid/Debug/",
             "environment": [],

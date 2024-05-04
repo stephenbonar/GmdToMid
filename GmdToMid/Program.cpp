@@ -29,27 +29,24 @@ Program::Program(std::vector<std::string> args)
     inputFileDef.isMandatory = true;
     inputFileParam = std::make_unique<CmdLine::PosParam>(inputFileDef);
 
-    CmdLine::PosParam::Definition outputFileDef;
-    outputFileDef.name = "mid";
-    outputFileDef.description = "The .MID file to output";
-    outputFileDef.isMandatory = true;
-    outputFileParam = std::make_unique<CmdLine::PosParam>(outputFileDef);
-
     cmdLineParser = std::make_unique<CmdLine::Parser>(progParam.get(), args);
     cmdLineParser->Add(inputFileParam.get());
-    cmdLineParser->Add(outputFileParam.get());
 }
 
 int Program::Run()
 {
+    std::cout << PROGRAM_NAME << " v" << VERSION_MAJOR << "." << VERSION_MINOR
+              << " " << PROGRAM_RELEASE << " " << PROGRAM_BUILD_TYPE
+              << std::endl << PROGRAM_COPYRIGHT << std::endl << std::endl;
+
     if (!ParseArguments())
-        return 1;
+        return exitCodeInvalidArgs;
 
     GmdFile gmd{ inputFileParam->Value() };
-    if (!gmd.Convert(outputFileParam->Value()))
-        return 1;
+    if (!gmd.Convert())
+        return exitCodeConversionError;
     else
-        return 0;
+        return exitCodeSuccess;
 }
 
 bool Program::ParseArguments()
@@ -61,10 +58,10 @@ bool Program::ParseArguments()
                   << std::endl;
         return false;
     }
-    else if (!inputFileParam->IsSpecified() || !outputFileParam->IsSpecified())
+    else if (!inputFileParam->IsSpecified())
     {
         std::cout << cmdLineParser->GenerateUsage() << std::endl;
-        std::cerr << "You must specify both an input and output filename." 
+        std::cerr << "You must specify a file to convert to .mid." 
                   << std::endl;
         return false;
     }
